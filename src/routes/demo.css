@@ -1,0 +1,13 @@
+.grid-stack-item {
+	border-radius: 8px;
+	cursor: pointer;
+}
+
+.grid-stack-item-content {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: white;
+	border-radius: 8px;
+	text-align: center;
+}
