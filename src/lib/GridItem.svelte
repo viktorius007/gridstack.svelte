@@ -1,5 +1,10 @@
 <script lang="ts">
 	import type { GridStackWidget } from 'gridstack/dist/types.js';
+	import type { Snippet } from 'svelte';
+
+	interface GridItemProps extends Omit<GridStackWidget, 'el'> {
+		children?: Snippet;
+	}
 
 	let {
 		x = 0,
@@ -20,7 +25,7 @@
 		sizeToContent,
 		resizeToContentParent,
 		children
-	}: GridStackWidget = $props();
+	}: GridItemProps = $props();
 </script>
 
 <div

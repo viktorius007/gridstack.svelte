@@ -1,13 +1,99 @@
+/* Grid stack items */
 .grid-stack-item {
-	border-radius: 8px;
-	cursor: pointer;
+	/* cursor: pointer; */
 }
 
 .grid-stack-item-content {
 	display: flex;
-	align-items: center;
-	justify-content: center;
+	align-items: center; /* Centers content vertically */
+	justify-content: center; /* Centers content horizontally */
 	background-color: white;
 	border-radius: 8px;
-	text-align: center;
+	/* text-align: center; */
+	/* height: 100%; */
+	/* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
 }
+
+/* Demo page layout */
+.demo-controls {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 2rem;
+	margin-top: 2rem;
+	margin-bottom: 2rem;
+	/* padding: 0 1rem; */
+}
+
+.drag-source,
+.trash-zone {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	/* padding: 0.25rem; */
+	margin: 0 auto;
+	border-radius: 0.5rem;
+	width: 160px;
+	height: 160px;
+	/* transition: background-color 0.3s; */
+}
+
+.drag-source {
+	background-color: rgba(34, 197, 94, 0.15);
+	/* cursor: pointer; */
+}
+
+.drag-source:hover {
+	background-color: rgba(34, 197, 94, 0.3);
+}
+
+.trash-zone {
+	background-color: rgba(239, 68, 68, 0.15);
+}
+
+.icon {
+	width: 32px;
+	height: 32px;
+}
+
+.icon-green {
+	color: rgb(21, 128, 61);
+}
+
+.icon-red {
+	color: rgb(185, 28, 28);
+}
+
+.text-red {
+	color: rgb(220, 38, 38);
+}
+
+.drag-text,
+.trash-text {
+	text-align: center;
+	margin-top: 0.5rem;
+}
+
+.drag-text {
+	color: rgb(21, 128, 61);
+}
+
+.trash-text {
+	color: rgb(185, 28, 28);
+}
+
+/* Dashboard container - REMOVED: styles moved to .grid-stack */
+
+/* Grid stack container - merged with dashboard container */
+.grid-stack {
+	padding: 0.5rem; /* Container padding around the grid */
+	border: 1px solid #e5e7eb;
+	border-radius: 0.5rem;
+	background: linear-gradient(to bottom right, #e5e7eb, #f9fafb);
+	/* min-height: 400px; */
+}
+
+/* GridStack v12 uses padding on container for spacing */
+/* Items themselves don't have margins, spacing is handled by GridStack */
+
+/* Widget content styles - removed redundant wrapper divs */
