@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Grid, { GridItem } from '$lib';
+	import Grid, { GridItem } from '$lib/index.js';
 	import { GridStack } from 'gridstack';
 	import 'gridstack/dist/gridstack.min.css';
 	import './demo.css';
@@ -19,9 +19,7 @@
 </script>
 
 <div class="demo-controls">
-	<div
-		class="drag-source grid-stack-item newWidget"
-	>
+	<div class="drag-source grid-stack-item newWidget">
 		<svg
 			class="icon icon-green"
 			xmlns="http://www.w3.org/2000/svg"
@@ -43,10 +41,7 @@
 		</svg>
 		<p class="drag-text">Drag me into the dashboard!</p>
 	</div>
-	<div
-		id="trash"
-		class="trash-zone ui-droppable"
-	>
+	<div id="trash" class="trash-zone ui-droppable">
 		<svg
 			class="icon icon-red"
 			xmlns="http://www.w3.org/2000/svg"
@@ -70,50 +65,50 @@
 </div>
 
 <Grid ref={grid} {options}>
-		<GridItem id="w1" x="0" y="0" w="4" h="2">1</GridItem>
-		<GridItem id="w2" x="4" y="0" w="4" h="4" noResize={true} noMove={true} locked={true}>
-			<svg
-				class="icon icon-red"
-				xmlns="http://www.w3.org/2000/svg"
-				width="24"
-				height="24"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-			>
-				<circle cx="12" cy="16" r="1"></circle><rect x="3" y="10" width="18" height="12" rx="2"
-				></rect>
-				<path d="M7 10V7a5 5 0 0 1 10 0v3"></path>
-			</svg>
-			<p class="text-red">Can't be moved or dragged, nor pushed by others</p>
-		</GridItem>
-		<GridItem id="w3" x="8" y="0" w="2" h="2" noResize={true}>
-			<svg
-				class="icon icon-red"
-				xmlns="http://www.w3.org/2000/svg"
-				width="24"
-				height="24"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-			>
-				<path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-				<path d="M14 15H9v-5"></path><path d="M16 3h5v5"></path><path d="M21 3 9 15"></path>
-			</svg>
-			<p class="text-red">Resize locked</p>
-		</GridItem>
-		<GridItem id="w4" x="10" y="0" w="2" h="2">4</GridItem>
-		<GridItem id="w5" x="0" y="2" w="2" h="2">5</GridItem>
-		<GridItem id="w6" x="2" y="2" w="2" h="4">6</GridItem>
-		<GridItem id="w7" x="8" y="2" w="4" h="2">7</GridItem>
-		<GridItem id="w8" x="10" y="4" w="2" h="2">11</GridItem>
-		<GridItem id="w9" x="0" y="4" w="2" h="2">8</GridItem>
-		<GridItem id="w9" x="4" y="4" w="4" h="2">9</GridItem>
-		<GridItem id="w9" x="8" y="4" w="2" h="2">10</GridItem>
+	<GridItem id="w1" x={0} y={0} w={4} h={2}>1</GridItem>
+	<GridItem id="w2" x={4} y={0} w={4} h={4} noResize={true} noMove={true} locked={true}>
+		<svg
+			class="icon icon-red"
+			xmlns="http://www.w3.org/2000/svg"
+			width="24"
+			height="24"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+		>
+			<circle cx="12" cy="16" r="1"></circle><rect x="3" y="10" width="18" height="12" rx="2"
+			></rect>
+			<path d="M7 10V7a5 5 0 0 1 10 0v3"></path>
+		</svg>
+		<p class="text-red">Can't be moved or dragged, nor pushed by others</p>
+	</GridItem>
+	<GridItem id="w3" x={8} y={0} w={2} h={2} noResize={true}>
+		<svg
+			class="icon icon-red"
+			xmlns="http://www.w3.org/2000/svg"
+			width="24"
+			height="24"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+		>
+			<path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+			<path d="M14 15H9v-5"></path><path d="M16 3h5v5"></path><path d="M21 3 9 15"></path>
+		</svg>
+		<p class="text-red">Resize locked</p>
+	</GridItem>
+	<GridItem id="w4" x={10} y={0} w={2} h={2}>4</GridItem>
+	<GridItem id="w5" x={0} y={2} w={2} h={2}>5</GridItem>
+	<GridItem id="w6" x={2} y={2} w={2} h={4}>6</GridItem>
+	<GridItem id="w7" x={8} y={2} w={4} h={2}>7</GridItem>
+	<GridItem id="w8" x={10} y={4} w={2} h={2}>11</GridItem>
+	<GridItem id="w9" x={0} y={4} w={2} h={2}>8</GridItem>
+	<GridItem id="w10" x={4} y={4} w={4} h={2}>9</GridItem>
+	<GridItem id="w11" x={8} y={4} w={2} h={2}>10</GridItem>
 </Grid>

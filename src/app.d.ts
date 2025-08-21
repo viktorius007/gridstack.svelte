@@ -12,7 +12,7 @@ declare global {
 	}
 
 	namespace svelteHTML {
-		interface HTMLAttributes<T> {
+		interface HTMLAttributes {
 			'gs-x'?: number;
 			'gs-y'?: number;
 			'gs-w'?: number;
@@ -28,8 +28,8 @@ declare global {
 			'gs-locked'?: boolean;
 			'gs-content'?: string;
 			'gs-lazy-load'?: boolean;
-			'gs-size-to-content'?: boolean;
-			'gs-resize-to-content-parent'?: boolean;
+			'gs-size-to-content'?: boolean | number;
+			'gs-resize-to-content-parent'?: string;
 		}
 	}
 }

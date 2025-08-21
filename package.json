@@ -1,6 +1,8 @@
 {
-	"name": "svelte-dashboard",
+	"name": "gridstack.svelte",
 	"version": "0.1.0",
+	"description": "Svelte 5 wrapper for GridStack.js v12 - drag and drop dashboard library",
+	"author": "Viktor",
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build && npm run package",
@@ -29,19 +31,16 @@
 			"svelte": "./dist/index.js"
 		}
 	},
-	"license": "MIT",
 	"peerDependencies": {
 		"svelte": "^5.0.0"
 	},
 	"devDependencies": {
-		"@sveltejs/adapter-auto": "^6.1.0",
 		"@sveltejs/kit": "^2.36.1",
 		"@sveltejs/package": "^2.5.0",
 		"@sveltejs/vite-plugin-svelte": "^6.1.3",
 		"eslint": "^9.33.0",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.11.0",
-		"globals": "^16.3.0",
 		"prettier": "^3.6.2",
 		"prettier-plugin-svelte": "^3.4.0",
 		"publint": "^0.3.12",
