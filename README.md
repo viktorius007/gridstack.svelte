@@ -102,6 +102,67 @@ Individual grid items that can be dragged and resized.
 - `autoPosition` - Auto-position item if `x`/`y` not provided
 - `children` - Content to display inside the grid item
 
+## 🎨 Styling Guide - Understanding GridStack's Structure
+
+### GridStack's Layer Structure
+
+#### 1. **`.grid-stack`** - The Container
+- **Purpose**: The overall grid container that manages the layout system
+- **What it does**: Sets up the coordinate system, handles grid calculations
+- **Don't touch**: Let GridStack manage this completely
+
+#### 2. **`.grid-stack-item`** - The Positioned Wrapper
+- **Purpose**: The absolutely positioned element that GridStack moves around
+- **What it does**: 
+  - Handles positioning (`top`, `left`, `width`, `height`)
+  - Uses CSS variables for grid calculations (`--gs-column-width`, `--gs-cell-height`)
+  - Contains resize handles as direct children
+  - Manages all animations and transitions during drag/resize
+- **Don't touch**: Position, dimensions, padding, transforms, transitions
+- **Never add**: Any CSS that affects positioning or animation
+
+#### 3. **`.grid-stack-item-content`** - The Margin/Gap Manager
+- **Purpose**: Creates the visual gaps between widgets
+- **What it does**:
+  - Uses `position: absolute` with `top`, `right`, `bottom`, `left`
+  - These positions reference CSS variables (`--gs-item-margin-*`) to create gaps
+  - Acts as a "negative space" creator
+- **NEVER style this**: Any styling breaks GridStack's margin system
+- **Don't add**: `height: 100%`, `display: flex`, backgrounds, borders, etc.
+
+#### 4. **Your content** - Direct child of `.grid-stack-item-content`
+- **Purpose**: Your actual widget content
+- **What goes here**: ALL your visual styling
+  - Backgrounds, borders, shadows
+  - Padding for internal spacing
+  - Layout properties (flex, grid)
+  - `height: 100%` to fill the available space
+- **Best practice**: Use a single wrapper div as the immediate child
+
+### The Critical Lesson
+
+**GridStack uses a "negative space" approach for margins:**
+- The `.grid-stack-item` is the full cell size
+- The `.grid-stack-item-content` is positioned *inside* with offsets
+- The gap between items is created by these offsets, not by margins
+
+**This is why styling `.grid-stack-item-content` breaks everything** - you're interfering with the positioning layer that creates the gaps.
+
+### Correct Structure
+```html
+<div class="grid-stack">                     <!-- GridStack manages -->
+  <div class="grid-stack-item">              <!-- GridStack positions -->
+    <div class="grid-stack-item-content">    <!-- GridStack gaps - DON'T TOUCH -->
+      <div class="your-widget">               <!-- YOUR styling goes here -->
+        <!-- Your content -->
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+The mistake we made was trying to "help" GridStack by styling its internal structure, when we should have just styled our own content and let GridStack handle its layout mechanics.
+
 ## 🛠️ Development
 
 ```bash
