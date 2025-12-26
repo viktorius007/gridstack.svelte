@@ -107,13 +107,15 @@ Individual grid items that can be dragged and resized.
 ### GridStack's Layer Structure
 
 #### 1. **`.grid-stack`** - The Container
+
 - **Purpose**: The overall grid container that manages the layout system
 - **What it does**: Sets up the coordinate system, handles grid calculations
 - **Don't touch**: Let GridStack manage this completely
 
 #### 2. **`.grid-stack-item`** - The Positioned Wrapper
+
 - **Purpose**: The absolutely positioned element that GridStack moves around
-- **What it does**: 
+- **What it does**:
   - Handles positioning (`top`, `left`, `width`, `height`)
   - Uses CSS variables for grid calculations (`--gs-column-width`, `--gs-cell-height`)
   - Contains resize handles as direct children
@@ -122,6 +124,7 @@ Individual grid items that can be dragged and resized.
 - **Never add**: Any CSS that affects positioning or animation
 
 #### 3. **`.grid-stack-item-content`** - The Margin/Gap Manager
+
 - **Purpose**: Creates the visual gaps between widgets
 - **What it does**:
   - Uses `position: absolute` with `top`, `right`, `bottom`, `left`
@@ -131,6 +134,7 @@ Individual grid items that can be dragged and resized.
 - **Don't add**: `height: 100%`, `display: flex`, backgrounds, borders, etc.
 
 #### 4. **Your content** - Direct child of `.grid-stack-item-content`
+
 - **Purpose**: Your actual widget content
 - **What goes here**: ALL your visual styling
   - Backgrounds, borders, shadows
@@ -142,22 +146,28 @@ Individual grid items that can be dragged and resized.
 ### The Critical Lesson
 
 **GridStack uses a "negative space" approach for margins:**
+
 - The `.grid-stack-item` is the full cell size
-- The `.grid-stack-item-content` is positioned *inside* with offsets
+- The `.grid-stack-item-content` is positioned _inside_ with offsets
 - The gap between items is created by these offsets, not by margins
 
 **This is why styling `.grid-stack-item-content` breaks everything** - you're interfering with the positioning layer that creates the gaps.
 
 ### Correct Structure
+
 ```html
-<div class="grid-stack">                     <!-- GridStack manages -->
-  <div class="grid-stack-item">              <!-- GridStack positions -->
-    <div class="grid-stack-item-content">    <!-- GridStack gaps - DON'T TOUCH -->
-      <div class="your-widget">               <!-- YOUR styling goes here -->
-        <!-- Your content -->
-      </div>
-    </div>
-  </div>
+<div class="grid-stack">
+	<!-- GridStack manages -->
+	<div class="grid-stack-item">
+		<!-- GridStack positions -->
+		<div class="grid-stack-item-content">
+			<!-- GridStack gaps - DON'T TOUCH -->
+			<div class="your-widget">
+				<!-- YOUR styling goes here -->
+				<!-- Your content -->
+			</div>
+		</div>
+	</div>
 </div>
 ```
 
