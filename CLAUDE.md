@@ -19,7 +19,10 @@ pnpm check            # TypeScript type checking
 pnpm check:watch      # Type checking in watch mode
 pnpm lint             # Run prettier + eslint checks
 pnpm format           # Auto-format code with prettier
+pnpm clean            # Remove .svelte-kit, build, dist directories
 ```
+
+**Note:** No test suite is configured yet.
 
 ## Architecture
 
@@ -30,6 +33,7 @@ Three thin wrapper components that expose GridStack.js functionality:
 - **Grid.svelte** - Container that initializes GridStack instance. Uses `$bindable()` ref for parent access to the GridStack API.
 - **GridItem.svelte** - Individual item wrapper. Maps props to GridStack data attributes (gs-x, gs-y, gs-w, gs-h, etc.).
 - **SubGrid.svelte** - Nested grid container for hierarchical layouts.
+- **types.ts** - Shared TypeScript types (`GridItemProps`, `SubGridProps`, `GridItemBaseProps`).
 
 All components use Svelte 5's snippet pattern (`{@render children?.()}`) for content rendering.
 
@@ -38,6 +42,8 @@ All components use Svelte 5's snippet pattern (`{@render children?.()}`) for con
 - **+page.svelte** - Comprehensive demo showcasing all features
 - **+page.ts** - Disables SSR (`export const ssr = false`) since GridStack requires browser APIs
 - **demo.css** - Demo-specific styling
+
+**SSR Constraint:** Any page using Grid components must disable SSR with `export const ssr = false` in +page.ts because GridStack.js requires browser APIs (DOM, window).
 
 ### Key Patterns
 
@@ -99,6 +105,7 @@ GridStack uses a "negative space" approach for margins. **Never style these Grid
 - Strict mode enabled
 - GridItem props extend `GridStackWidget` interface from gridstack
 - Types are auto-generated during `pnpm package`
+- Library exports types: `GridItemProps`, `SubGridProps`, `GridItemBaseProps`
 
 ## Reference Documentation
 
@@ -110,28 +117,8 @@ The repository includes comprehensive GridStack.js documentation:
 
 ## Future Enhancements
 
-Potential improvements that would make the wrapper more "batteries included" at the cost of added complexity:
+Potential improvements (trading simplicity for features):
 
-### 1. Reactive Prop Mode
-
-Add `$effect`-based prop syncing so changing `w`, `h`, `x`, `y` props automatically updates the grid layout without manual API calls.
-
-**Benefit:** More idiomatic Svelte - just update a variable instead of calling `grid.update()`.
-
-**Trade-off:** Adds complexity and potential performance overhead. Current thin wrapper approach is simpler and more predictable.
-
-### 2. Svelte Event Forwarding
-
-Forward GridStack events as native Svelte events: `<Grid onchange={handler}>` instead of `grid.on('change', handler)`.
-
-**Benefit:** Better TypeScript autocomplete, automatic cleanup, more idiomatic Svelte API.
-
-**Trade-off:** More wrapper code. Would need to forward all ~15 GridStack events to be complete.
-
-### 3. Runtime Prop Validation
-
-Add development-mode warnings for invalid prop combinations (e.g., `w={-1}`, `minW > maxW`).
-
-**Benefit:** Catches configuration errors early with helpful messages.
-
-**Trade-off:** Adds bundle size. Only useful during development.
+1. **Reactive Prop Mode** - Add `$effect`-based prop syncing so changing props auto-updates the grid
+2. **Svelte Event Forwarding** - Forward GridStack events as native Svelte events (`<Grid onchange={handler}>`)
+3. **Runtime Prop Validation** - Dev-mode warnings for invalid prop combinations

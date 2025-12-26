@@ -26,4 +26,7 @@ vite.config.ts.timestamp-*
 .idea
 
 # Serena MCP server
-.serena/.eslintcache
+.serena/
+
+# ESLint cache
+.eslintcache
