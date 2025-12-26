@@ -1,13 +1,35 @@
 <script lang="ts">
 	import Grid, { GridItem } from '$lib/index.js';
-	import { GridStack } from 'gridstack';
+	import { GridStack, type GridStackWidget } from 'gridstack';
 	import { onMount } from 'svelte';
 	import 'gridstack/dist/gridstack.min.css';
 	import './demo.css';
 
+	// Enable HTML content rendering (must be set before any GridStack.init())
+	// Default is text-only (textContent) for XSS safety
+	// Note: `el` IS the .grid-stack-item-content element
+	GridStack.renderCB = (el: HTMLElement, w: GridStackWidget) => {
+		if (w.content) {
+			el.innerHTML = w.content;
+		}
+	};
+
+	// Type definitions
+	interface GridEvent {
+		time: string;
+		type: string;
+		detail: string;
+	}
+
+	interface SavedLayout {
+		name: string;
+		data: GridStackWidget[];
+		timestamp: string;
+	}
+
 	// Grid reference and options
-	let grid = $state(null);
-	let options = $state({
+	let grid: GridStack | null = $state(null);
+	const options = $state({
 		margin: 8,
 		cellHeight: 70,
 		animate: true,
@@ -33,11 +55,11 @@
 	let cellWidth = $state(0);
 
 	// Event log
-	let events = $state([]);
+	let events: GridEvent[] = $state([]);
 	const maxEvents = 8;
 
 	// Saved layouts
-	let savedLayouts = $state([]);
+	let savedLayouts: SavedLayout[] = $state([]);
 	let currentLayoutName = $state('');
 
 	// Widget counter for unique IDs
@@ -46,11 +68,14 @@
 	// Log event helper
 	function logEvent(type: string, detail: string = '') {
 		const timestamp = new Date().toLocaleTimeString();
-		events = [{
-			time: timestamp,
-			type,
-			detail
-		}, ...events].slice(0, maxEvents);
+		events = [
+			{
+				time: timestamp,
+				type,
+				detail
+			},
+			...events
+		].slice(0, maxEvents);
 	}
 
 	// Update grid statistics
@@ -77,9 +102,7 @@
 
 	function updateMargin() {
 		if (!grid) return;
-		grid.opts.margin = margin;
-		grid.initMargin();
-		grid.doContentResize(false);
+		grid.margin(margin);
 		logEvent('margin', `Set to ${margin}px`);
 	}
 
@@ -130,22 +153,18 @@
 		const w = Math.floor(Math.random() * 3) + 1;
 		const h = Math.floor(Math.random() * 3) + 1;
 		const id = `widget-${widgetIdCounter++}`;
-		
-		// Create the widget element manually
-		const el = document.createElement('div');
-		el.id = id;
-		el.className = 'grid-stack-item';
-		el.innerHTML = `
-			<div class="grid-stack-item-content">
-				<div>
-					<div class="widget-header">Widget ${widgetIdCounter - 1}</div>
-					<div class="widget-info">${w}×${h}</div>
-				</div>
-			</div>`;
-		
-		// Add widget using the element
-		grid.addWidget(el, { w, h });
-		
+
+		// Add widget using the new API with content property
+		grid.addWidget({
+			id,
+			w,
+			h,
+			content: `<div>
+				<div class="widget-header">Widget ${widgetIdCounter - 1}</div>
+				<div class="widget-info">${w}×${h}</div>
+			</div>`
+		});
+
 		logEvent('add', `Widget ${widgetIdCounter - 1} (${w}×${h})`);
 		updateStats();
 	}
@@ -153,19 +172,22 @@
 	// Layout management
 	function saveLayout() {
 		if (!grid || !currentLayoutName.trim()) return;
-		
-		const layout = grid.save(false);
-		savedLayouts = [...savedLayouts, {
-			name: currentLayoutName,
-			data: layout,
-			timestamp: new Date().toISOString()
-		}];
-		
+
+		const layout = grid.save(false) as GridStackWidget[];
+		savedLayouts = [
+			...savedLayouts,
+			{
+				name: currentLayoutName,
+				data: layout,
+				timestamp: new Date().toISOString()
+			}
+		];
+
 		logEvent('save', `Layout "${currentLayoutName}" saved`);
 		currentLayoutName = '';
 	}
 
-	function loadLayout(layout: any) {
+	function loadLayout(layout: SavedLayout) {
 		if (!grid) return;
 		grid.load(layout.data);
 		logEvent('load', `Layout "${layout.name}" loaded`);
@@ -183,11 +205,13 @@
 		if (!grid) return;
 		const id = `widget-${widgetIdCounter++}`;
 		let innerContent = '';
-		let w = 2, h = 2;
+		let w = 2,
+			h = 2;
 
-		switch(type) {
+		switch (type) {
 			case 'chart':
-				w = 4; h = 3;
+				w = 4;
+				h = 3;
 				innerContent = `
 					<div class="widget-chart">
 						<div class="widget-header">📊 Chart Widget</div>
@@ -201,7 +225,8 @@
 					</div>`;
 				break;
 			case 'table':
-				w = 3; h = 3;
+				w = 3;
+				h = 3;
 				innerContent = `
 					<div class="widget-table">
 						<div class="widget-header">📋 Table Widget</div>
@@ -213,7 +238,8 @@
 					</div>`;
 				break;
 			case 'metric':
-				w = 2; h = 2;
+				w = 2;
+				h = 2;
 				innerContent = `
 					<div class="widget-metric">
 						<div class="widget-header">📈 Metric</div>
@@ -222,79 +248,96 @@
 					</div>`;
 				break;
 			case 'text':
-				w = 3; h = 2;
+				w = 3;
+				h = 2;
 				innerContent = `
 					<div class="widget-text">
 						<div class="widget-header">📝 Text Widget</div>
 						<p class="widget-text">This is a text widget with some sample content.</p>
 					</div>`;
 				break;
+			default:
+				break;
 		}
 
-		// Create the widget element manually
-		const el = document.createElement('div');
-		el.id = id;
-		el.className = 'grid-stack-item';
-		el.innerHTML = `<div class="grid-stack-item-content">${innerContent}</div>`;
-		
-		// Add widget using the element
-		grid.addWidget(el, { w, h });
-		
+		// Add widget using the new API with content property
+		grid.addWidget({
+			id,
+			w,
+			h,
+			content: innerContent
+		});
+
 		logEvent('add', `${type} widget added`);
 		updateStats();
 	}
 
 	// Initialize everything on mount
 	onMount(() => {
-		// Setup drag from external sources
-		GridStack.setupDragIn('.newWidget', {
-			helper: 'clone'
-		}, (event) => {
-			// Create a new widget element when dropped
-			const el = document.createElement('div');
-			el.className = 'grid-stack-item';
-			el.innerHTML = `
-				<div class="grid-stack-item-content">
-					<div>
-						<div class="widget-header">New Widget</div>
-						<div class="widget-info">Dragged In</div>
-					</div>
-				</div>`;
-			return el;
+		// Setup drag from external sources with widget definition
+		GridStack.setupDragIn(
+			'.newWidget',
+			{
+				helper: 'clone'
+			},
+			[
+				{
+					w: 2,
+					h: 2,
+					content: `<div>
+				<div class="widget-header">New Widget</div>
+				<div class="widget-info">Dragged In</div>
+			</div>`
+				}
+			]
+		);
+	});
+
+	// Setup grid event listeners reactively
+	/* eslint-disable @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-unsafe-call -- ESLint doesn't track Svelte bindings */
+	$effect(() => {
+		if (!grid) return;
+
+		grid.on('added', (_event: Event, items: unknown[]) => {
+			logEvent('added', `${items.length} widget(s)`);
+			updateStats();
 		});
 
-		// Setup grid event listeners
-		if (grid) {
-			grid.on('added', (event, items) => {
-				logEvent('added', `${items.length} widget(s)`);
-				updateStats();
-			});
-
-			grid.on('removed', (event, items) => {
-				logEvent('removed', `${items.length} widget(s)`);
-				updateStats();
-			});
-
-			grid.on('change', (event, items) => {
-				logEvent('change', `${items.length} widget(s) modified`);
-				updateStats();
-			});
-
-			grid.on('resize', (event, el) => {
-				const node = el.gridstackNode;
-				logEvent('resize', `Widget to ${node.w}×${node.h}`);
-			});
-
-			grid.on('drag', (event, el) => {
-				const node = el.gridstackNode;
-				logEvent('drag', `Widget to (${node.x}, ${node.y})`);
-			});
-
-			// Initial stats update
+		grid.on('removed', (_event: Event, items: unknown[]) => {
+			logEvent('removed', `${items.length} widget(s)`);
 			updateStats();
-			logEvent('init', 'Grid initialized');
-		}
+		});
+
+		grid.on('change', (_event: Event, items: unknown[]) => {
+			logEvent('change', `${items.length} widget(s) modified`);
+			updateStats();
+		});
+
+		grid.on(
+			'resize',
+			(_event: Event, el: HTMLElement & { gridstackNode?: { w?: number; h?: number } }) => {
+				const node = el.gridstackNode;
+				if (node) {
+					logEvent('resize', `Widget to ${node.w ?? '?'}×${node.h ?? '?'}`);
+				}
+			}
+		);
+
+		grid.on(
+			'drag',
+			(_event: Event, el: HTMLElement & { gridstackNode?: { x?: number; y?: number } }) => {
+				const node = el.gridstackNode;
+				if (node) {
+					logEvent('drag', `Widget to (${node.x ?? '?'}, ${node.y ?? '?'})`);
+				}
+			}
+		);
+
+		// Initial stats update
+		updateStats();
+		logEvent('init', 'Grid initialized');
 	});
+	/* eslint-enable @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-unsafe-call */
 </script>
 
 <div class="showcase-container">
@@ -310,15 +353,21 @@
 			<div class="control-group">
 				<label>
 					Columns: <span class="value">{columns}</span>
-					<input type="range" min="1" max="12" bind:value={columns} on:change={updateColumns} />
+					<input type="range" min="1" max="12" bind:value={columns} onchange={updateColumns} />
 				</label>
 				<label>
 					Cell Height: <span class="value">{cellHeight}px</span>
-					<input type="range" min="20" max="150" bind:value={cellHeight} on:change={updateCellHeight} />
+					<input
+						type="range"
+						min="20"
+						max="150"
+						bind:value={cellHeight}
+						onchange={updateCellHeight}
+					/>
 				</label>
 				<label>
 					Margin: <span class="value">{margin}px</span>
-					<input type="range" min="0" max="20" bind:value={margin} on:change={updateMargin} />
+					<input type="range" min="0" max="20" bind:value={margin} onchange={updateMargin} />
 				</label>
 			</div>
 		</div>
@@ -326,9 +375,9 @@
 		<div class="panel-section">
 			<h3>Actions</h3>
 			<div class="button-group">
-				<button class="btn btn-primary" on:click={compactGrid}>Compact</button>
-				<button class="btn btn-danger" on:click={clearAll}>Clear All</button>
-				<button class="btn btn-success" on:click={addRandomWidget}>Add Random</button>
+				<button type="button" class="btn btn-primary" onclick={compactGrid}>Compact</button>
+				<button type="button" class="btn btn-danger" onclick={clearAll}>Clear All</button>
+				<button type="button" class="btn btn-success" onclick={addRandomWidget}>Add Random</button>
 			</div>
 		</div>
 
@@ -336,19 +385,19 @@
 			<h3>Display Options</h3>
 			<div class="checkbox-group">
 				<label>
-					<input type="checkbox" bind:checked={animateEnabled} on:change={toggleAnimate} />
+					<input type="checkbox" bind:checked={animateEnabled} onchange={toggleAnimate} />
 					Animate
 				</label>
 				<label>
-					<input type="checkbox" bind:checked={floatEnabled} on:change={toggleFloat} />
+					<input type="checkbox" bind:checked={floatEnabled} onchange={toggleFloat} />
 					Float
 				</label>
 				<label>
-					<input type="checkbox" bind:checked={staticMode} on:change={toggleStatic} />
+					<input type="checkbox" bind:checked={staticMode} onchange={toggleStatic} />
 					Static
 				</label>
 				<label>
-					<input type="checkbox" bind:checked={disabled} on:change={toggleDisable} />
+					<input type="checkbox" bind:checked={disabled} onchange={toggleDisable} />
 					Disable
 				</label>
 			</div>
@@ -360,21 +409,58 @@
 		<div class="drag-source-container">
 			<h3>Drag Source</h3>
 			<div class="drag-item newWidget">
-				<svg class="icon icon-green" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"></path>
-					<path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"></path>
-					<path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path>
-					<path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path>
+				<svg
+					class="icon icon-green"
+					xmlns="http://www.w3.org/2000/svg"
+					width="24"
+					height="24"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0" />
+					<path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2" />
+					<path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8" />
+					<path
+						d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"
+					/>
 				</svg>
 				<p>Drag Me!</p>
 			</div>
 			<div class="preset-widgets">
 				<h4>Preset Widgets:</h4>
 				<div class="preset-buttons">
-					<button class="btn btn-sm" on:click={() => addPresetWidget('chart')}>Chart</button>
-					<button class="btn btn-sm" on:click={() => addPresetWidget('table')}>Table</button>
-					<button class="btn btn-sm" on:click={() => addPresetWidget('metric')}>Metric</button>
-					<button class="btn btn-sm" on:click={() => addPresetWidget('text')}>Text</button>
+					<button
+						type="button"
+						class="btn btn-sm"
+						onclick={() => {
+							addPresetWidget('chart');
+						}}>Chart</button
+					>
+					<button
+						type="button"
+						class="btn btn-sm"
+						onclick={() => {
+							addPresetWidget('table');
+						}}>Table</button
+					>
+					<button
+						type="button"
+						class="btn btn-sm"
+						onclick={() => {
+							addPresetWidget('metric');
+						}}>Metric</button
+					>
+					<button
+						type="button"
+						class="btn btn-sm"
+						onclick={() => {
+							addPresetWidget('text');
+						}}>Text</button
+					>
 				</div>
 			</div>
 		</div>
@@ -382,12 +468,23 @@
 		<div class="trash-container">
 			<h3>Trash Zone</h3>
 			<div id="trash" class="trash-zone">
-				<svg class="icon icon-red" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M3 6h18"></path>
-					<path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-					<path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-					<line x1="10" x2="10" y1="11" y2="17"></line>
-					<line x1="14" x2="14" y1="11" y2="17"></line>
+				<svg
+					class="icon icon-red"
+					xmlns="http://www.w3.org/2000/svg"
+					width="24"
+					height="24"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M3 6h18" />
+					<path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+					<path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+					<line x1="10" x2="10" y1="11" y2="17" />
+					<line x1="14" x2="14" y1="11" y2="17" />
 				</svg>
 				<p>Drop Here</p>
 			</div>
@@ -498,7 +595,7 @@
 				{#if events.length === 0}
 					<div class="event-item">No events yet...</div>
 				{/if}
-				{#each events as event}
+				{#each events as event, i (i)}
 					<div class="event-item">
 						<span class="event-time">{event.time}</span>
 						<span class="event-type">{event.type}</span>
@@ -516,13 +613,20 @@
 		<h3>Saved Layouts</h3>
 		<div class="layouts-controls">
 			<div class="save-layout">
-				<input 
-					type="text" 
-					bind:value={currentLayoutName} 
+				<input
+					type="text"
+					bind:value={currentLayoutName}
 					placeholder="Layout name..."
-					on:keydown={(e) => e.key === 'Enter' && saveLayout()}
+					onkeydown={(e) => {
+						if (e.key === 'Enter') saveLayout();
+					}}
 				/>
-				<button class="btn btn-primary" on:click={saveLayout} disabled={!currentLayoutName.trim()}>
+				<button
+					type="button"
+					class="btn btn-primary"
+					onclick={saveLayout}
+					disabled={!currentLayoutName.trim()}
+				>
 					Save Current
 				</button>
 			</div>
@@ -530,12 +634,24 @@
 				{#if savedLayouts.length === 0}
 					<p class="no-layouts">No saved layouts yet</p>
 				{/if}
-				{#each savedLayouts as layout, i}
+				{#each savedLayouts as layout, i (layout.timestamp)}
 					<div class="layout-item">
-						<button class="btn btn-sm" on:click={() => loadLayout(layout)}>
+						<button
+							type="button"
+							class="btn btn-sm"
+							onclick={() => {
+								loadLayout(layout);
+							}}
+						>
 							{layout.name}
 						</button>
-						<button class="btn btn-sm btn-danger" on:click={() => deleteLayout(i)}>×</button>
+						<button
+							type="button"
+							class="btn btn-sm btn-danger"
+							onclick={() => {
+								deleteLayout(i);
+							}}>×</button
+						>
 					</div>
 				{/each}
 			</div>
