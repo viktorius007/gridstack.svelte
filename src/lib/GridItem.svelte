@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { GridStackWidget } from 'gridstack/dist/types.js';
+	import type { GridStackWidget } from 'gridstack';
 	import type { Snippet } from 'svelte';
 
 	interface GridItemProps extends Omit<GridStackWidget, 'el'> {

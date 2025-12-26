@@ -1,21 +1,35 @@
 <script lang="ts">
-	import { GridStack } from 'gridstack';
-	import { onMount } from 'svelte';
+	import { GridStack, type GridStackOptions } from 'gridstack';
+	import { onMount, type Snippet } from 'svelte';
 
-	let { ref = $bindable(), options, children, ...rest } = $props();
+	interface Props {
+		ref?: GridStack | null;
+		options?: GridStackOptions;
+		children?: Snippet;
+		class?: string;
+	}
+
+	let {
+		ref = $bindable<GridStack | null>(null),
+		options,
+		children,
+		class: className
+	}: Props = $props();
 	let gridElement: HTMLDivElement;
 
 	onMount(() => {
-		ref = GridStack.init(options, gridElement);
+		try {
+			ref = GridStack.init(options, gridElement);
+		} catch (error) {
+			console.error('GridStack initialization failed:', error);
+		}
 
 		return () => {
-			if (ref) {
-				ref.destroy(false);
-			}
+			ref?.destroy(false);
 		};
 	});
 </script>
 
-<div bind:this={gridElement} class={rest.class || 'grid-stack'}>
+<div bind:this={gridElement} class={className ?? 'grid-stack'}>
 	{@render children?.()}
 </div>
