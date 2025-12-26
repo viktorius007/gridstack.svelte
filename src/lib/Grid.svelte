@@ -9,12 +9,7 @@
 		class?: string;
 	}
 
-	let {
-		ref = $bindable<GridStack | null>(null),
-		options,
-		children,
-		class: className
-	}: Props = $props();
+	let { ref = $bindable(null), options, children, class: className }: Props = $props();
 	let gridElement: HTMLDivElement;
 
 	onMount(() => {

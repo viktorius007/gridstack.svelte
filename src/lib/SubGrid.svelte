@@ -1,22 +1,5 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
-
-	interface Props {
-		x?: number;
-		y?: number;
-		w?: number;
-		h?: number;
-		id?: string;
-		minW?: number;
-		maxW?: number;
-		minH?: number;
-		maxH?: number;
-		noResize?: boolean;
-		noMove?: boolean;
-		locked?: boolean;
-		children?: Snippet;
-		class?: string;
-	}
+	import type { SubGridProps } from './types';
 
 	let {
 		x = 0,
@@ -33,7 +16,7 @@
 		locked,
 		children,
 		class: className
-	}: Props = $props();
+	}: SubGridProps = $props();
 </script>
 
 <div
